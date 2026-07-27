@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Access — TAVARÉ</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+
+  <!-- LOGIN -->
+  <section class="admin-login" id="loginView">
+    <div class="admin-login-card">
+      <a class="wordmark" href="/">
+        <svg class="hallmark" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2 L22 12 L12 22 L2 12 Z" stroke="currentColor" stroke-width="1.1"/>
+          <circle cx="9.3" cy="9.3" r="1.5" fill="currentColor"/>
+        </svg>
+        <span>TAVAR&Eacute;</span>
+      </a>
+      <p class="admin-eyebrow">Studio Access</p>
+      <h1>Sign in to manage the collection.</h1>
+
+      <form id="loginForm" novalidate>
+        <div class="form-row">
+          <label for="username">Email</label>
+          <input type="email" id="username" name="username" autocomplete="username" required>
+        </div>
+        <div class="form-row">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <p class="admin-error" id="loginError" role="alert"></p>
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-label">Sign In</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="admin-dashboard" id="dashboardView" hidden>
+    <header class="admin-topbar">
+      <a class="wordmark" href="/">
+        <svg class="hallmark" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2 L22 12 L12 22 L2 12 Z" stroke="currentColor" stroke-width="1.1"/>
+          <circle cx="9.3" cy="9.3" r="1.5" fill="currentColor"/>
+        </svg>
+        <span>TAVAR&Eacute; <em>Studio</em></span>
+      </a>
+      <div class="admin-topbar-actions">
+        <a href="/" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">View Site</a>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <div class="admin-content-head">
+        <div>
+          <p class="admin-eyebrow">Inventory</p>
+          <h1>The Collection</h1>
+        </div>
+        <button class="btn btn-primary" id="newProductBtn" type="button">+ Add Piece</button>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th scope="col">Piece</th>
+              <th scope="col">Category</th>
+              <th scope="col">Lot No.</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productRows">
+            <tr><td colspan="5" class="admin-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- PRODUCT FORM MODAL -->
+<div class="admin-modal" id="productModal" hidden>
+  <div class="admin-modal-backdrop" id="modalBackdrop"></div>
+  <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-head">
+      <h2 id="modalTitle">Add a Piece</h2>
+      <button class="admin-modal-close" id="modalClose" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <form id="productForm" enctype="multipart/form-data" novalidate>
+      <input type="hidden" id="productId" name="id">
+
+      <div class="admin-form-grid">
+        <div class="form-row">
+          <label for="pName">Name</label>
+          <input type="text" id="pName" name="name" required placeholder="The Vesper Ring">
+        </div>
+        <div class="form-row">
+          <label for="pCategory">Category</label>
+          <select id="pCategory" name="category" required>
+            <option value="jewellery">Jewellery</option>
+            <option value="art">Rare Art</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="pLotNumber">Lot number</label>
+          <input type="text" id="pLotNumber" name="lotNumber" placeholder="014">
+        </div>
+        <div class="form-row">
+          <label for="pStatus">Status</label>
+          <select id="pStatus" name="status">
+            <option value="available">Available</option>
+            <option value="reserved">Reserved</option>
+            <option value="sold">Sold / Archived</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="pEra">Era</label>
+          <input type="text" id="pEra" name="era" placeholder="Art Deco · 1930s">
+        </div>
+        <div class="form-row">
+          <label for="pMaterial">Material</label>
+          <input type="text" id="pMaterial" name="material" placeholder="925 Silver &amp; Moonstone">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="pDescription">Description</label>
+        <textarea id="pDescription" name="description" rows="2" placeholder="One line about the piece."></textarea>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="form-row">
+          <label for="pPriceNote">Price note</label>
+          <input type="text" id="pPriceNote" name="priceNote" placeholder="Price on request">
+        </div>
+        <div class="form-row">
+          <label for="pImage">Photo <span class="optional">(JPG/PNG/WEBP, up to 5MB)</span></label>
+          <input type="file" id="pImage" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
+        </div>
+      </div>
+
+      <img id="pImagePreview" class="admin-image-preview" alt="" hidden>
+
+      <p class="admin-error" id="formError" role="alert"></p>
+
+      <div class="admin-modal-actions">
+        <button type="button" class="btn btn-ghost" id="modalCancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-label">Save Piece</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
