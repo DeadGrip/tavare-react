@@ -19,8 +19,58 @@
   var imageInput = document.getElementById("pImage");
   var imagePreview = document.getElementById("pImagePreview");
 
+  var confirmModal = document.getElementById("confirmModal");
+  var confirmBackdrop = document.getElementById("confirmBackdrop");
+  var confirmMessage = document.getElementById("confirmMessage");
+  var confirmOkBtn = document.getElementById("confirmOk");
+  var confirmCancelBtn = document.getElementById("confirmCancel");
+  var toasts = document.getElementById("toasts");
+
   var STATUS_LABEL = { available: "Available", reserved: "Reserved", sold: "Sold / Archived" };
   var BUCKET = "product-images";
+
+  /* ---------- toast + confirm dialog (replace alert()/confirm()) ---------- */
+  function showToast(message, type) {
+    var toast = document.createElement("div");
+    toast.className = "admin-toast" + (type === "error" ? " toast-error" : "");
+    toast.textContent = message;
+    toasts.appendChild(toast);
+    window.setTimeout(function () {
+      toast.classList.add("toast-leaving");
+      toast.addEventListener("animationend", function () {
+        toast.remove();
+      });
+    }, 3200);
+  }
+
+  var confirmResolver = null;
+  function showConfirm(message) {
+    confirmMessage.textContent = message;
+    confirmModal.hidden = false;
+    confirmOkBtn.focus();
+    return new Promise(function (resolve) {
+      confirmResolver = resolve;
+    });
+  }
+  function closeConfirm(result) {
+    confirmModal.hidden = true;
+    if (confirmResolver) {
+      confirmResolver(result);
+      confirmResolver = null;
+    }
+  }
+  confirmOkBtn.addEventListener("click", function () {
+    closeConfirm(true);
+  });
+  confirmCancelBtn.addEventListener("click", function () {
+    closeConfirm(false);
+  });
+  confirmBackdrop.addEventListener("click", function () {
+    closeConfirm(false);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !confirmModal.hidden) closeConfirm(false);
+  });
 
   var supabaseClient =
     window.supabase && window.TAVARE_SUPABASE_URL
@@ -152,7 +202,7 @@
             if (idx > -1) currentProducts[idx].status = select.value;
           })
           .catch(function () {
-            alert("Couldn’t update status. Please try again.");
+            showToast("Couldn’t update status. Please try again.", "error");
             loadProducts();
           });
       });
@@ -171,23 +221,27 @@
           return p.id === id;
         });
         var name = product ? product.name : "this piece";
-        if (!window.confirm('Delete "' + name + '"? This can’t be undone.')) return;
 
-        supabaseClient
-          .from("products")
-          .delete()
-          .eq("id", id)
-          .then(function (result) {
-            if (result.error) throw result.error;
-            var imagePath = storagePathFromUrl(product && product.image);
-            if (imagePath) {
-              supabaseClient.storage.from(BUCKET).remove([imagePath]);
-            }
-            loadProducts();
-          })
-          .catch(function () {
-            alert("Couldn’t delete this piece. Please try again.");
-          });
+        showConfirm('Delete "' + name + '"? This can’t be undone.').then(function (confirmed) {
+          if (!confirmed) return;
+
+          supabaseClient
+            .from("products")
+            .delete()
+            .eq("id", id)
+            .then(function (result) {
+              if (result.error) throw result.error;
+              var imagePath = storagePathFromUrl(product && product.image);
+              if (imagePath) {
+                supabaseClient.storage.from(BUCKET).remove([imagePath]);
+              }
+              showToast('"' + name + '" deleted.');
+              loadProducts();
+            })
+            .catch(function () {
+              showToast("Couldn’t delete this piece. Please try again.", "error");
+            });
+        });
       });
     });
   }
@@ -303,6 +357,7 @@
       .then(function (result) {
         if (result.error) throw result.error;
         closeModal();
+        showToast(id ? "Piece updated." : "Piece added.");
         loadProducts();
       })
       .catch(function (err) {
