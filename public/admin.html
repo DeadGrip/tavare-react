@@ -169,6 +169,22 @@
   </div>
 </div>
 
+<!-- CONFIRM DIALOG -->
+<div class="admin-modal admin-confirm" id="confirmModal" hidden>
+  <div class="admin-modal-backdrop" id="confirmBackdrop"></div>
+  <div class="admin-modal-panel admin-confirm-panel" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h2 id="confirmTitle">Delete this piece?</h2>
+    <p id="confirmMessage" class="admin-confirm-message"></p>
+    <div class="admin-modal-actions">
+      <button type="button" class="btn btn-ghost" id="confirmCancel">Cancel</button>
+      <button type="button" class="btn btn-danger" id="confirmOk">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="admin-toasts" id="toasts" aria-live="polite"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/admin.js"></script>
