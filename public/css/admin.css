@@ -20,6 +20,7 @@
   justify-content: center;
   padding: var(--space-3);
 }
+.admin-login[hidden], .admin-dashboard[hidden]{ display: none; }
 .admin-login-card{
   width: 100%;
   max-width: 380px;
@@ -228,4 +229,64 @@
 @media (max-width: 620px){
   .admin-form-grid{ grid-template-columns: 1fr; }
   .admin-table{ min-width: 520px; }
+}
+
+/* ---------- Danger button ---------- */
+.btn-danger{
+  background: transparent;
+  color: #C9776E;
+  border: 1px solid #6B3A35;
+}
+.btn-danger:hover{ background: #C9776E; color: var(--ink); border-color: #C9776E; }
+
+/* ---------- Confirm dialog ---------- */
+.admin-confirm-panel{
+  max-width: 400px;
+  padding: var(--space-4);
+  text-align: left;
+}
+.admin-confirm-panel h2{ font-size: 1.15rem; margin-bottom: var(--space-2); }
+.admin-confirm-message{
+  color: var(--bone-dim);
+  font-size: 0.92rem;
+  margin-bottom: var(--space-3) !important;
+}
+
+/* ---------- Toasts ---------- */
+.admin-toasts{
+  position: fixed;
+  bottom: var(--space-3);
+  right: var(--space-3);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: min(340px, calc(100vw - var(--space-3) * 2));
+}
+.admin-toast{
+  background: var(--panel);
+  border: 1px solid var(--hairline-strong);
+  border-left: 3px solid var(--verdigris);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.86rem;
+  color: var(--bone);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  animation: toast-in 220ms cubic-bezier(.16,.8,.3,1);
+}
+.admin-toast.toast-error{ border-left-color: #C9776E; }
+.admin-toast.toast-leaving{
+  animation: toast-out 180ms ease-in forwards;
+}
+@keyframes toast-in{
+  from{ opacity: 0; transform: translateY(8px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-out{
+  from{ opacity: 1; transform: translateY(0); }
+  to{ opacity: 0; transform: translateY(8px); }
+}
+@media (prefers-reduced-motion: reduce){
+  .admin-toast{ animation: none; }
+  .admin-toast.toast-leaving{ animation: none; }
 }
