@@ -9,5 +9,5 @@
  * Fill these in after creating your Supabase project and running
  * supabase/schema.sql — see SETUP.md.
  */
-window.TAVARE_SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
-window.TAVARE_SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY";
+window.TAVARE_SUPABASE_URL = "https://rfaaqarbnugdsiafmvsq.supabase.co";
+window.TAVARE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmYWFxYXJibnVnZHNpYWZtdnNxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzUyMjA5MCwiZXhwIjoyMDk5MDk4MDkwfQ.WiO4meFYoC7WE6fgPo-KuBo8XykSpYANigUilCOTW4I";
