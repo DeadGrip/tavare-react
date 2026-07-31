@@ -136,26 +136,21 @@
     var statusLabel = STATUS_LABEL[p.status] || "Now Reserving";
     var statusClass = STATUS_CLASS[p.status] || "status-available";
     var soldClass = p.status === "sold" ? " lot-sold" : "";
-    var media = p.image
+    var hasPhoto = !!p.image;
+    var media = hasPhoto
       ? '<img class="lot-photo" src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '">'
-      : jewelleryPlaceholderSvg();
-    var caption = p.image ? "" : "Plate awaiting development";
+      : jewelleryPlaceholderSvg() + '<p class="plate-caption">Plate awaiting development</p>';
 
     return (
       '<article class="lot-card reveal' + soldClass + '" data-reveal>' +
-      '<div class="lot-image">' +
-      archFrameSvg() +
+      '<div class="lot-image' + (hasPhoto ? " has-photo" : "") + '">' +
+      (hasPhoto ? "" : archFrameSvg()) +
       media +
-      '<div class="lot-label">' +
-      '<span class="lot-no">Design&nbsp;No.&nbsp;' + escapeHtml(p.lotNumber || "") + "</span>" +
-      "<span>" + escapeHtml(p.material || "") + "</span>" +
-      (caption ? "<span>" + caption + "</span>" : "") +
-      '<span class="lot-status ' + statusClass + '">' + statusLabel + "</span>" +
-      "</div>" +
       "</div>" +
       "<h3>" + escapeHtml(p.name) + "</h3>" +
       "<p>" + escapeHtml(p.description || "") + "</p>" +
-      '<p class="lot-meta">Design&nbsp;No.&nbsp;' + escapeHtml(p.lotNumber || "") + " &middot; " + escapeHtml(p.priceNote || "Price on request") + "</p>" +
+      '<p class="lot-meta">Design&nbsp;No.&nbsp;' + escapeHtml(p.lotNumber || "") + " &middot; " + escapeHtml(p.priceNote || "Price on request") +
+      ' <span class="lot-status ' + statusClass + '">' + statusLabel + "</span></p>" +
       "</article>"
     );
   }
@@ -199,11 +194,18 @@
   function loadReservationCount() {
     if (!supabaseClient || !reserveCountEl) return;
     supabaseClient
-      .rpc("reservation_count")
+      .from("site_settings")
+      .select("reserve_count_enabled")
+      .eq("id", true)
+      .single()
       .then(function (result) {
         if (result.error) throw result.error;
-        reserveCountNumberEl.textContent = result.data;
-        reserveCountEl.hidden = false;
+        if (result.data && result.data.reserve_count_enabled === false) return;
+        return supabaseClient.rpc("reservation_count").then(function (countResult) {
+          if (countResult.error) throw countResult.error;
+          reserveCountNumberEl.textContent = countResult.data;
+          reserveCountEl.hidden = false;
+        });
       })
       .catch(function () {
         /* quietly hide the counter if it can't load — not critical to the page */
@@ -336,10 +338,11 @@
     if (cookieDecline) cookieDecline.addEventListener("click", function () { setCookieConsent("declined"); });
   }
 
-  /* ---------- Site content overrides (admin-editable copy) ---------- */
+  /* ---------- Site content overrides (admin-editable copy + links) ---------- */
   function loadSiteContent() {
-    var els = document.querySelectorAll("[data-ck]");
-    if (!supabaseClient || !els.length) return;
+    var textEls = document.querySelectorAll("[data-ck]");
+    var linkEls = document.querySelectorAll("[data-ck-href]");
+    if (!supabaseClient || (!textEls.length && !linkEls.length)) return;
     supabaseClient
       .from("site_content")
       .select("key,value")
@@ -349,11 +352,17 @@
         result.data.forEach(function (row) {
           if (row.value) map[row.key] = row.value;
         });
-        els.forEach(function (el) {
+        textEls.forEach(function (el) {
           var key = el.getAttribute("data-ck");
           if (!map[key]) return;
           el.textContent = map[key];
           if (key === "contact.email") el.setAttribute("href", "mailto:" + map[key]);
+        });
+        linkEls.forEach(function (el) {
+          var key = el.getAttribute("data-ck-href");
+          if (!map[key]) return;
+          el.setAttribute("href", map[key]);
+          el.hidden = false;
         });
       })
       .catch(function () {
@@ -369,7 +378,7 @@
     if (!supabaseClient || !heroPlate || !heroSvg) return;
     supabaseClient
       .from("site_settings")
-      .select("hero_image")
+      .select("hero_image,hero_frame_style")
       .eq("id", true)
       .single()
       .then(function (result) {
@@ -381,6 +390,8 @@
         img.src = url;
         img.alt = "The Convertible Set";
         heroSvg.replaceWith(img);
+        heroPlate.classList.add("has-photo");
+        heroPlate.classList.add("frame-" + (result.data.hero_frame_style || "quatrefoil"));
       })
       .catch(function () {
         /* quietly keep the SVG illustration if this fails */
