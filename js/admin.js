@@ -18,6 +18,9 @@
   var formError = document.getElementById("formError");
   var imageInput = document.getElementById("pImage");
   var imagePreview = document.getElementById("pImagePreview");
+  var imageRemoveBtn = document.getElementById("pImageRemoveBtn");
+  var imageRemoved = false;
+  var currentProductImage = null;
 
   var confirmModal = document.getElementById("confirmModal");
   var confirmBackdrop = document.getElementById("confirmBackdrop");
@@ -29,6 +32,7 @@
   var STATUS_LABEL = { available: "Now Reserving", reserved: "Fully Reserved", sold: "Series Closed" };
   var BUCKET = "product-images";
 
+  var reserveCountEnabled = document.getElementById("reserveCountEnabled");
   var timerEnabled = document.getElementById("timerEnabled");
   var timerLabel = document.getElementById("timerLabel");
   var timerDays = document.getElementById("timerDays");
@@ -41,6 +45,7 @@
   var heroImageUploadBtn = document.getElementById("heroImageUploadBtn");
   var heroImageRemoveBtn = document.getElementById("heroImageRemoveBtn");
   var heroImageError = document.getElementById("heroImageError");
+  var heroFrameStyle = document.getElementById("heroFrameStyle");
   var currentHeroImage = null;
 
   var contentEditorGroups = document.getElementById("contentEditorGroups");
@@ -115,6 +120,7 @@
         loadProducts();
         loadSettings();
         loadContentEditor();
+        loadReservations();
       }
     });
   }
@@ -137,6 +143,7 @@
         loadProducts();
         loadSettings();
         loadContentEditor();
+        loadReservations();
       })
       .catch(function () {
         loginError.textContent = "Couldn't reach Supabase. Check your connection.";
@@ -282,6 +289,9 @@
     productForm.reset();
     imagePreview.hidden = true;
     imagePreview.src = "";
+    imageRemoveBtn.hidden = true;
+    imageRemoved = false;
+    currentProductImage = null;
 
     if (id) {
       var product = currentProducts.find(function (p) {
@@ -300,6 +310,8 @@
       if (product.image) {
         imagePreview.src = product.image;
         imagePreview.hidden = false;
+        imageRemoveBtn.hidden = false;
+        currentProductImage = product.image;
       }
     } else {
       modalTitle.textContent = "Add a Design";
@@ -328,6 +340,16 @@
     if (!file) return;
     imagePreview.src = URL.createObjectURL(file);
     imagePreview.hidden = false;
+    imageRemoveBtn.hidden = false;
+    imageRemoved = false;
+  });
+
+  imageRemoveBtn.addEventListener("click", function () {
+    imageInput.value = "";
+    imagePreview.hidden = true;
+    imagePreview.src = "";
+    imageRemoveBtn.hidden = true;
+    imageRemoved = !!currentProductImage;
   });
 
   function uploadImageIfNeeded() {
@@ -367,6 +389,7 @@
           status: document.getElementById("pStatus").value,
         };
         if (imageUrl) record.image = imageUrl;
+        else if (imageRemoved) record.image = null;
 
         if (id) {
           return supabaseClient.from("products").update(record).eq("id", id);
@@ -376,6 +399,10 @@
       })
       .then(function (result) {
         if (result.error) throw result.error;
+        if (imageRemoved && currentProductImage) {
+          var oldPath = storagePathFromUrl(currentProductImage);
+          if (oldPath) supabaseClient.storage.from(BUCKET).remove([oldPath]);
+        }
         closeModal();
         showToast(id ? "Design updated." : "Design added.");
         loadProducts();
@@ -402,15 +429,17 @@
   function loadSettings() {
     supabaseClient
       .from("site_settings")
-      .select("timer_enabled,timer_label,timer_ends_at,hero_image")
+      .select("timer_enabled,timer_label,timer_ends_at,hero_image,reserve_count_enabled,hero_frame_style")
       .eq("id", true)
       .single()
       .then(function (result) {
         if (result.error) throw result.error;
         var s = result.data || {};
+        reserveCountEnabled.checked = s.reserve_count_enabled !== false;
         timerEnabled.checked = !!s.timer_enabled;
         timerLabel.value = s.timer_label || "Series I closes in";
         timerCurrentEnds.textContent = formatEndsAt(s.timer_ends_at);
+        heroFrameStyle.value = s.hero_frame_style || "quatrefoil";
 
         currentHeroImage = s.hero_image || null;
         if (currentHeroImage) {
@@ -430,13 +459,14 @@
     supabaseClient
       .from("site_settings")
       .update({
+        reserve_count_enabled: reserveCountEnabled.checked,
         timer_enabled: timerEnabled.checked,
         timer_label: timerLabel.value.trim() || "Series I closes in",
       })
       .eq("id", true)
       .then(function (result) {
         if (result.error) throw result.error;
-        showToast("Timer settings saved.");
+        showToast("Settings saved.");
       })
       .catch(function () {
         showToast("Couldn’t save timer settings.", "error");
@@ -476,6 +506,20 @@
     if (!file) return;
     heroImagePreview.src = URL.createObjectURL(file);
     heroImagePreview.hidden = false;
+  });
+
+  heroFrameStyle.addEventListener("change", function () {
+    supabaseClient
+      .from("site_settings")
+      .update({ hero_frame_style: heroFrameStyle.value })
+      .eq("id", true)
+      .then(function (result) {
+        if (result.error) throw result.error;
+        showToast("Frame style saved.");
+      })
+      .catch(function () {
+        showToast("Couldn’t save the frame style.", "error");
+      });
   });
 
   heroImageUploadBtn.addEventListener("click", function () {
@@ -622,6 +666,11 @@
       { key: "footer.tagline", label: "Tagline", type: "textarea", placeholder: "One set of jewellery, worn four ways. Handcrafted in India in numbered, limited series, for Europe." },
       { key: "footer.legal", label: "Legal line", placeholder: "© 2026 Tavaré. Series I limited to 50 numbered sets." },
     ]},
+    { title: "Footer — Social Links", fields: [
+      { key: "social.instagram", label: "Instagram URL", placeholder: "https://instagram.com/yourhandle" },
+      { key: "social.facebook", label: "Facebook URL", placeholder: "https://facebook.com/yourpage" },
+      { key: "social.pinterest", label: "Pinterest URL", placeholder: "https://pinterest.com/yourprofile" },
+    ]},
   ];
 
   function buildContentEditorForm() {
@@ -678,6 +727,104 @@
       .catch(function (err) {
         showToast((err && err.message) || "Couldn’t save site content.", "error");
       });
+  });
+
+  /* ---------- Reservations ---------- */
+  var currentReservations = [];
+  var reservationRows = document.getElementById("reservationRows");
+  var exportReservationsBtn = document.getElementById("exportReservationsBtn");
+  var FINISH_LABEL = { polished: "Polished", brushed: "Brushed", no_preference: "No preference" };
+
+  function loadReservations() {
+    if (!reservationRows) return;
+    reservationRows.innerHTML = '<tr><td colspan="5" class="admin-empty">Loading…</td></tr>';
+    supabaseClient
+      .from("reservations")
+      .select("seq_number,name,email,finish,created_at")
+      .order("seq_number", { ascending: true })
+      .then(function (result) {
+        if (result.error) throw result.error;
+        currentReservations = result.data || [];
+        if (!currentReservations.length) {
+          reservationRows.innerHTML = '<tr><td colspan="5" class="admin-empty">No reservations yet.</td></tr>';
+          return;
+        }
+        reservationRows.innerHTML = currentReservations
+          .map(function (r) {
+            var date = r.created_at
+              ? new Date(r.created_at).toLocaleDateString(undefined, { dateStyle: "medium" })
+              : "";
+            return (
+              "<tr>" +
+              "<td>" + String(r.seq_number).padStart(3, "0") + "</td>" +
+              "<td>" + escapeHtml(r.name) + "</td>" +
+              "<td>" + escapeHtml(r.email) + "</td>" +
+              "<td>" + escapeHtml(FINISH_LABEL[r.finish] || r.finish) + "</td>" +
+              "<td>" + escapeHtml(date) + "</td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+      })
+      .catch(function () {
+        reservationRows.innerHTML = '<tr><td colspan="5" class="admin-empty">Couldn’t load reservations.</td></tr>';
+      });
+  }
+
+  if (exportReservationsBtn) {
+    exportReservationsBtn.addEventListener("click", function () {
+      if (!currentReservations.length) {
+        showToast("No reservations to export yet.", "error");
+        return;
+      }
+      function csvField(value) {
+        var str = value == null ? "" : String(value);
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      var lines = [["No.", "Name", "Email", "Finish", "Date"].map(csvField).join(",")];
+      currentReservations.forEach(function (r) {
+        lines.push(
+          [
+            r.seq_number,
+            r.name,
+            r.email,
+            FINISH_LABEL[r.finish] || r.finish,
+            r.created_at ? new Date(r.created_at).toISOString() : "",
+          ]
+            .map(csvField)
+            .join(",")
+        );
+      });
+      var blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "tavare-reservations-" + new Date().toISOString().slice(0, 10) + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  /* ---------- Admin tabs ---------- */
+  var adminTabs = document.querySelectorAll(".admin-tab");
+  var tabPanels = document.querySelectorAll("[data-tab-panel]");
+
+  adminTabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var target = tab.getAttribute("data-tab");
+
+      adminTabs.forEach(function (t) {
+        var active = t === tab;
+        t.classList.toggle("is-active", active);
+        t.setAttribute("aria-selected", active ? "true" : "false");
+      });
+
+      tabPanels.forEach(function (panel) {
+        panel.hidden = panel.id !== "tabPanel-" + target;
+      });
+    });
   });
 
   checkSession();
