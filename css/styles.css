@@ -423,6 +423,8 @@ p{ margin: 0; }
   opacity: 0.75;
   clip-path: url(#archClip);
 }
+/* No shimmer/arch clip over a real photo — those effects are for the line-art only */
+.hero-plate.has-photo::after, .lot-image.has-photo::after{ display: none; }
 @media (prefers-reduced-motion: reduce){
   .hero-plate::after, .lot-image::after{ animation: none; opacity: 0.2; }
 }
@@ -538,7 +540,7 @@ p{ margin: 0; }
 .lot-card:hover .lot-image{ transform: translateY(-3px); }
 .lot-card:hover .lot-image .frame-svg{ filter: brightness(1.2); }
 
-/* Frame overlay (jharokha arch / art corner brackets) sits above the media */
+/* Frame overlay (jharokha arch) sits above the line-art placeholder only */
 .frame-svg{
   position: absolute;
   inset: 0;
@@ -548,6 +550,7 @@ p{ margin: 0; }
   pointer-events: none;
   transition: filter var(--dur-base) var(--ease-out);
 }
+.lot-image.has-photo .frame-svg{ display: none; }
 
 .placeholder-svg{
   position: absolute;
@@ -557,7 +560,18 @@ p{ margin: 0; }
   margin: auto;
   z-index: 1;
 }
+.plate-caption{
+  position: absolute;
+  left: 0; right: 0; bottom: 8%;
+  z-index: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  color: var(--bone-dim);
+}
 
+/* Real photo — plain, clean crop; no arch clip, no ornamentation */
 .lot-photo{
   position: absolute;
   inset: 0;
@@ -565,36 +579,17 @@ p{ margin: 0; }
   height: 100%;
   object-fit: cover;
   z-index: 1;
-  clip-path: url(#archClip);
+  border-radius: 6px;
+  border: 1px solid var(--hairline-strong);
 }
 
-.lot-label{
-  position: absolute;
-  left: 8%; right: 8%; bottom: 4%;
-  z-index: 3;
+.lot-meta{
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-2) var(--space-1);
-  background: linear-gradient(to top, rgba(13,13,12,0.94) 55%, transparent);
-  transform: translateY(100%);
-  transition: transform var(--dur-base) var(--ease-out);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  color: var(--bone-dim);
-  text-align: center;
+  align-items: center;
+  gap: 0.6em;
+  flex-wrap: wrap;
 }
-.lot-card:hover .lot-label,
-.lot-card:focus-within .lot-label{ transform: translateY(0); }
-.lot-no{
-  color: var(--bone);
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-.lot-status{ margin-top: 4px; text-transform: uppercase; }
+.lot-status{ text-transform: uppercase; }
 .status-available{ color: var(--verdigris); }
 .status-reserved{ color: #C6A15B; }
 .status-sold{ color: var(--bone-dim); }
@@ -929,6 +924,24 @@ p{ margin: 0; }
   margin-top: var(--space-2);
   max-width: 34ch;
 }
+.social-icons{
+  display: flex;
+  gap: 0.6em;
+  margin-top: var(--space-3);
+}
+.social-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 50%;
+  color: var(--bone-dim);
+  transition: color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.social-icon:hover{ color: var(--bone); border-color: var(--platinum); }
+.social-icon[hidden]{ display: none; }
 .footer-col h4{
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -995,10 +1008,88 @@ p{ margin: 0; }
   position: relative;
   z-index: 1;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
-  clip-path: url(#archClip);
+  object-position: 50% 22%;
+  border-radius: 2px;
 }
+/* No shimmer/arch clip over a real photo — those effects are for the line-art only */
+.hero-plate.has-photo::after{ display: none; }
+/* The wear-caption is for the line-art state only — a real photo stands on its own */
+.hero-plate.has-photo figcaption{ display: none; }
+/* Once a real photo is set, the wear tabs no longer change anything visible — hide them */
+.hero-inner:has(.hero-plate.has-photo) .wear-toggle{ display: none; }
+
+/* ---------- Frame style base (shared reset — each variant below overrides) ---------- */
+.hero-plate.has-photo{
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  clip-path: none;
+}
+.hero-plate.has-photo::before{ content: none; }
+.frame-corner{ display: none; position: absolute; width: 22px; height: 22px; z-index: 2; pointer-events: none; filter: drop-shadow(0 0 5px rgba(184,188,194,0.2)); }
+.frame-corner.tl{ top: 2px; left: 2px; }
+.frame-corner.tr{ top: 2px; right: 2px; transform: scaleX(-1); }
+.frame-corner.bl{ bottom: 2px; left: 2px; transform: scaleY(-1); }
+.frame-corner.br{ bottom: 2px; right: 2px; transform: scale(-1, -1); }
+
+/* 1 — Museum Plate */
+.hero-plate.has-photo.frame-museum{ border: 1px solid var(--hairline-strong); box-shadow: 0 18px 44px rgba(0,0,0,0.4); }
+.hero-plate.has-photo.frame-museum::after{
+  content: "SET NO. 001 \2014 SERIES I"; display: block; position: absolute; bottom: -15px; left: 20px;
+  background: var(--panel-2); border: 1px solid var(--platinum); color: var(--bone);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; padding: 5px 10px; z-index: 3;
+}
+
+/* 2 — Art Deco Steps */
+.hero-plate.has-photo.frame-artdeco{ padding: 22px; background: var(--panel-2); border: 2px solid var(--platinum); box-shadow: 0 18px 44px rgba(0,0,0,0.4); }
+.hero-plate.has-photo.frame-artdeco::before{ content: ""; position: absolute; inset: 8px; border: 1px solid var(--hairline-strong); }
+.hero-plate.has-photo.frame-artdeco::after{ content: ""; display: block; position: absolute; inset: 14px; border: 1px solid var(--platinum); opacity: 0.5; z-index: 2; }
+
+/* 3 — Polaroid */
+.hero-plate.has-photo.frame-polaroid{ padding: 16px 16px 56px; background: var(--bone); box-shadow: 0 18px 44px rgba(0,0,0,0.5); }
+.hero-plate.has-photo.frame-polaroid::after{
+  content: "Series I \2014 No. 001"; display: block; position: absolute; bottom: 16px; left: 0; right: 0; text-align: center;
+  font-family: var(--font-display); font-style: italic; color: #2a2a28; font-size: 15px;
+}
+
+/* 4 — Floating */
+.hero-plate.has-photo.frame-floating{ box-shadow: 0 30px 60px rgba(0,0,0,0.55); }
+.hero-plate.has-photo.frame-floating .hero-photo{ border-radius: 4px; }
+
+/* 5 — Brutalist Edge */
+.hero-plate.has-photo.frame-brutalist{ padding: 0 0 0 18px; border-left: 5px solid var(--platinum); }
+
+/* 6 — Double Echo */
+.hero-plate.has-photo.frame-echo{ border: 1px solid var(--hairline-strong); }
+.hero-plate.has-photo.frame-echo::before{ content: ""; position: absolute; inset: -12px 12px 12px -12px; border: 1px solid var(--platinum); opacity: 0.5; z-index: 0; }
+.hero-plate.has-photo.frame-echo .hero-photo{ position: relative; z-index: 1; }
+
+/* 7 — Jeweler's Loupe */
+.hero-plate.has-photo.frame-loupe{ padding: 16px; background: var(--panel-2); border: 2px solid var(--platinum); border-radius: 50%; box-shadow: 0 18px 44px rgba(0,0,0,0.4); }
+.hero-plate.has-photo.frame-loupe::before{ content: ""; position: absolute; inset: 6px; border-radius: 50%; border: 1px solid var(--hairline-strong); }
+.hero-plate.has-photo.frame-loupe .hero-photo{ border-radius: 50%; aspect-ratio: 1 / 1; }
+.hero-plate.has-photo.frame-loupe::after{
+  content: ""; display: block; position: absolute; bottom: -36px; right: 6px; width: 8px; height: 48px;
+  background: var(--platinum); border-radius: 4px; transform: rotate(35deg); transform-origin: top; z-index: -1;
+}
+
+/* 8 — Rough Edge */
+.hero-plate.has-photo.frame-rough{
+  clip-path: polygon(2% 5%, 8% 1%, 15% 4%, 22% 0%, 30% 3%, 38% 0%, 46% 4%, 54% 1%, 62% 3%, 70% 0%, 78% 4%, 86% 1%, 94% 3%, 100% 0%, 98% 8%, 100% 16%, 97% 24%, 100% 32%, 98% 40%, 100% 48%, 97% 56%, 100% 64%, 98% 72%, 100% 80%, 97% 88%, 100% 96%, 94% 99%, 86% 96%, 78% 100%, 70% 97%, 62% 100%, 54% 96%, 46% 99%, 38% 96%, 30% 100%, 22% 97%, 15% 100%, 8% 96%, 2% 99%, 0% 92%, 3% 84%, 0% 76%, 2% 68%, 0% 60%, 3% 52%, 0% 44%, 2% 36%, 0% 28%, 3% 20%, 0% 12%);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+/* 9 — Ticket Stub */
+.hero-plate.has-photo.frame-ticket{ padding: 18px; background: var(--panel-2); border: 2px dashed var(--platinum); box-shadow: 0 18px 44px rgba(0,0,0,0.4); }
+.hero-plate.has-photo.frame-ticket::before{ content: ""; position: absolute; inset: 8px; border: 1px dotted var(--hairline-strong); }
+
+/* 10 — Quatrefoil Classic (default) */
+.hero-plate.has-photo.frame-quatrefoil{ padding: 20px; background: var(--panel-2); border: 1px solid var(--hairline-strong); box-shadow: 0 18px 44px rgba(0,0,0,0.4); }
+.hero-plate.has-photo.frame-quatrefoil::before{ content: ""; position: absolute; inset: 9px; border: 1px dotted var(--platinum); opacity: 0.6; pointer-events: none; z-index: 1; }
+.hero-plate.has-photo.frame-quatrefoil .frame-corner{ display: block; }
 
 /* ============================================================
    Reserve form — consent checkbox
