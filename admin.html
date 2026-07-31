@@ -64,114 +64,185 @@
     </header>
 
     <div class="admin-content">
-      <div class="admin-content-head">
-        <div>
-          <p class="admin-eyebrow">Catalogue</p>
-          <h1>Designs</h1>
-        </div>
-        <button class="btn btn-primary" id="newProductBtn" type="button">+ Add Design</button>
+      <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+        <button type="button" class="admin-tab is-active" data-tab="catalogue" role="tab" aria-selected="true">Catalogue</button>
+        <button type="button" class="admin-tab" data-tab="reservations" role="tab" aria-selected="false">Reservations</button>
+        <button type="button" class="admin-tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
+        <button type="button" class="admin-tab" data-tab="content" role="tab" aria-selected="false">Content</button>
       </div>
 
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th scope="col">Design</th>
-              <th scope="col">Design No.</th>
-              <th scope="col">Status</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="productRows">
-            <tr><td colspan="4" class="admin-empty">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="admin-content-head admin-settings-head">
-        <div>
-          <p class="admin-eyebrow">Series I</p>
-          <h1>Countdown Timer</h1>
-        </div>
-      </div>
-
-      <div class="admin-settings-panel">
-        <div class="admin-settings-row">
+      <!-- CATALOGUE TAB -->
+      <div class="admin-panel" id="tabPanel-catalogue" data-tab-panel>
+        <div class="admin-content-head">
           <div>
-            <p class="admin-settings-label">Show countdown on site</p>
-            <p class="admin-settings-hint">When off, the timer is completely hidden from visitors — the reservation count still shows.</p>
+            <p class="admin-eyebrow">Catalogue</p>
+            <h1>Designs</h1>
           </div>
-          <label class="admin-toggle">
-            <input type="checkbox" id="timerEnabled">
-            <span class="admin-toggle-track"><span class="admin-toggle-thumb"></span></span>
-          </label>
+          <button class="btn btn-primary" id="newProductBtn" type="button">+ Add Design</button>
         </div>
 
-        <div class="admin-settings-row">
-          <div class="form-row">
-            <label for="timerLabel">Timer label</label>
-            <input type="text" id="timerLabel" placeholder="Series I closes in">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th scope="col">Design</th>
+                <th scope="col">Design No.</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productRows">
+              <tr><td colspan="4" class="admin-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESERVATIONS TAB -->
+      <div class="admin-panel" id="tabPanel-reservations" data-tab-panel hidden>
+        <div class="admin-content-head">
+          <div>
+            <p class="admin-eyebrow">Series I</p>
+            <h1>Reservations</h1>
+          </div>
+          <button class="btn btn-ghost" id="exportReservationsBtn" type="button">Export CSV</button>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th scope="col">No.</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Finish</th>
+                <th scope="col">Date</th>
+              </tr>
+            </thead>
+            <tbody id="reservationRows">
+              <tr><td colspan="5" class="admin-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div class="admin-panel" id="tabPanel-settings" data-tab-panel hidden>
+        <div class="admin-content-head">
+          <div>
+            <p class="admin-eyebrow">Series I</p>
+            <h1>Countdown Timer</h1>
           </div>
         </div>
 
-        <div class="admin-settings-row admin-settings-restart">
-          <div class="form-row">
-            <label for="timerDays">Restart with duration (days)</label>
-            <input type="number" id="timerDays" min="1" max="365" value="14">
+        <div class="admin-settings-panel">
+          <div class="admin-settings-row">
+            <div>
+              <p class="admin-settings-label">Show "X of 50 reserved" count on site</p>
+              <p class="admin-settings-hint">The live reservation counter shown above the Reserve form.</p>
+            </div>
+            <label class="admin-toggle">
+              <input type="checkbox" id="reserveCountEnabled">
+              <span class="admin-toggle-track"><span class="admin-toggle-thumb"></span></span>
+            </label>
           </div>
-          <button type="button" class="btn btn-ghost" id="timerRestartBtn">Restart Timer</button>
+
+          <div class="admin-settings-row">
+            <div>
+              <p class="admin-settings-label">Show countdown on site</p>
+              <p class="admin-settings-hint">When off, the timer is completely hidden from visitors.</p>
+            </div>
+            <label class="admin-toggle">
+              <input type="checkbox" id="timerEnabled">
+              <span class="admin-toggle-track"><span class="admin-toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <div class="admin-settings-row">
+            <div class="form-row">
+              <label for="timerLabel">Timer label</label>
+              <input type="text" id="timerLabel" placeholder="Series I closes in">
+            </div>
+          </div>
+
+          <div class="admin-settings-row admin-settings-restart">
+            <div class="form-row">
+              <label for="timerDays">Restart with duration (days)</label>
+              <input type="number" id="timerDays" min="1" max="365" value="14">
+            </div>
+            <button type="button" class="btn btn-ghost" id="timerRestartBtn">Restart Timer</button>
+          </div>
+
+          <p class="admin-settings-current" id="timerCurrentEnds"></p>
+
+          <div class="admin-modal-actions admin-settings-actions">
+            <button type="button" class="btn btn-primary" id="timerSaveBtn">
+              <span class="btn-label">Save Settings</span>
+            </button>
+          </div>
         </div>
 
-        <p class="admin-settings-current" id="timerCurrentEnds"></p>
+        <div class="admin-content-head admin-settings-head">
+          <div>
+            <p class="admin-eyebrow">Homepage</p>
+            <h1>Hero Image</h1>
+          </div>
+        </div>
+
+        <div class="admin-settings-panel">
+          <p class="admin-settings-hint">Replaces the line-art illustration on the homepage with a real photo of the set. Leave empty to keep the illustration.</p>
+          <div class="admin-hero-image-row">
+            <img id="heroImagePreview" class="admin-image-preview" alt="" hidden>
+            <div class="form-row">
+              <label for="heroImageInput">Photo <span class="optional">(square, e.g. 1200&times;1200px &middot; JPG/PNG/WEBP &middot; up to 5MB)</span></label>
+              <input type="file" id="heroImageInput" accept="image/jpeg,image/png,image/webp,image/gif">
+            </div>
+          </div>
+          <p class="admin-error" id="heroImageError" role="alert"></p>
+          <div class="admin-modal-actions admin-settings-actions">
+            <button type="button" class="btn btn-ghost" id="heroImageRemoveBtn">Remove Photo</button>
+            <button type="button" class="btn btn-primary" id="heroImageUploadBtn">
+              <span class="btn-label">Upload &amp; Save</span>
+            </button>
+          </div>
+
+          <div class="form-row admin-frame-style-row">
+            <label for="heroFrameStyle">Frame style <span class="optional">(only shows once a photo is set above)</span></label>
+            <select id="heroFrameStyle">
+              <option value="quatrefoil">Quatrefoil Classic — double border, corner ornaments</option>
+              <option value="museum">Museum Plate — thin border, accession tag</option>
+              <option value="artdeco">Art Deco Steps — concentric geometric border</option>
+              <option value="polaroid">Polaroid — cream instant-photo border</option>
+              <option value="floating">Floating — no frame, soft shadow only</option>
+              <option value="brutalist">Brutalist Edge — single bold side bar</option>
+              <option value="echo">Double Echo — offset outline behind photo</option>
+              <option value="loupe">Jeweler's Loupe — circular with handle</option>
+              <option value="rough">Rough Edge — irregular gemstone-like silhouette</option>
+              <option value="ticket">Ticket Stub — dashed and dotted borders</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT TAB -->
+      <div class="admin-panel" id="tabPanel-content" data-tab-panel hidden>
+        <div class="admin-content-head">
+          <div>
+            <p class="admin-eyebrow">Every Page</p>
+            <h1>Site Content</h1>
+          </div>
+        </div>
+
+        <p class="admin-settings-hint admin-content-intro">Edit any text on the site. Leave a field empty to keep the
+          original default wording — nothing here is required.</p>
+
+        <div id="contentEditorGroups"></div>
 
         <div class="admin-modal-actions admin-settings-actions">
-          <button type="button" class="btn btn-primary" id="timerSaveBtn">
-            <span class="btn-label">Save Settings</span>
+          <button type="button" class="btn btn-primary" id="contentSaveBtn">
+            <span class="btn-label">Save All Content</span>
           </button>
         </div>
-      </div>
-
-      <div class="admin-content-head admin-settings-head">
-        <div>
-          <p class="admin-eyebrow">Homepage</p>
-          <h1>Hero Image</h1>
-        </div>
-      </div>
-
-      <div class="admin-settings-panel">
-        <p class="admin-settings-hint">Replaces the line-art illustration on the homepage with a real photo of the set. Leave empty to keep the illustration.</p>
-        <div class="admin-hero-image-row">
-          <img id="heroImagePreview" class="admin-image-preview" alt="" hidden>
-          <div class="form-row">
-            <label for="heroImageInput">Photo <span class="optional">(square, e.g. 1200&times;1200px &middot; JPG/PNG/WEBP &middot; up to 5MB)</span></label>
-            <input type="file" id="heroImageInput" accept="image/jpeg,image/png,image/webp,image/gif">
-          </div>
-        </div>
-        <p class="admin-error" id="heroImageError" role="alert"></p>
-        <div class="admin-modal-actions admin-settings-actions">
-          <button type="button" class="btn btn-ghost" id="heroImageRemoveBtn">Remove Photo</button>
-          <button type="button" class="btn btn-primary" id="heroImageUploadBtn">
-            <span class="btn-label">Upload &amp; Save</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="admin-content-head admin-settings-head">
-        <div>
-          <p class="admin-eyebrow">Every Page</p>
-          <h1>Site Content</h1>
-        </div>
-      </div>
-
-      <p class="admin-settings-hint admin-content-intro">Edit any text on the site. Leave a field empty to keep the
-        original default wording — nothing here is required.</p>
-
-      <div id="contentEditorGroups"></div>
-
-      <div class="admin-modal-actions admin-settings-actions">
-        <button type="button" class="btn btn-primary" id="contentSaveBtn">
-          <span class="btn-label">Save All Content</span>
-        </button>
       </div>
     </div>
   </section>
@@ -227,11 +298,14 @@
         <div class="form-row">
           <label for="pImage">Photo <span class="optional">(square, e.g. 1000&times;1000px &middot; JPG/PNG/WEBP &middot; up to 5MB)</span></label>
           <input type="file" id="pImage" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
-          <p class="admin-field-hint">Photos are cropped into a circular arch frame — a centred square image works best. Off-square photos will be cropped from the centre.</p>
+          <p class="admin-field-hint">Shown as a clean square crop — a centred square image works best. Leave empty to show the engraved placeholder illustration instead.</p>
         </div>
       </div>
 
-      <img id="pImagePreview" class="admin-image-preview" alt="" hidden>
+      <div class="admin-photo-preview-row">
+        <img id="pImagePreview" class="admin-image-preview" alt="" hidden>
+        <button type="button" class="btn btn-ghost" id="pImageRemoveBtn" hidden>Remove Photo</button>
+      </div>
 
       <p class="admin-error" id="formError" role="alert"></p>
 
